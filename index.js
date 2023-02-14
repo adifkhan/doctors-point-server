@@ -40,6 +40,17 @@ async function run() {
     const userCollection = client.db("doctors_point").collection("users");
     const doctorCollection = client.db("doctors_point").collection("doctors");
 
+    /* // verify admin //
+    const verifyAdmin = async (req, res, next) => {
+      const requester = req.decoded.email;
+      const requesterInfo = await userCollection.findOne({ email: requester });
+      if (requesterInfo.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "Forbidden Access" });
+      }
+    }; */
+
     // get all services //
     app.get("/service", async (req, res) => {
       const query = {};
@@ -132,6 +143,14 @@ async function run() {
     app.get("/users", verifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
+    });
+
+    //for check admin role and get the admin if admin
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user?.role === "admin";
+      res.send({ admin: isAdmin });
     });
 
     //post new doctor
