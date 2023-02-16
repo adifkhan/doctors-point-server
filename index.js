@@ -41,6 +41,7 @@ async function run() {
     const bookingCollection = client.db("doctors_point").collection("bookings");
     const userCollection = client.db("doctors_point").collection("users");
     const doctorCollection = client.db("doctors_point").collection("doctors");
+    const paymentCollection = client.db("doctors_point").collection("payments");
 
     /* // verify admin //
     const verifyAdmin = async (req, res, next) => {
@@ -138,6 +139,24 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const booking = await bookingCollection.findOne(query);
       res.send(booking);
+    });
+
+    // update payment status to database //
+    app.patch("/booking/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const { paymentIntent } = req.body;
+      const updatedDoc = {
+        $set: {
+          transactionId: paymentIntent.id,
+        },
+      };
+      const result = await paymentCollection.insertOne(paymentIntent);
+      const updatedBooking = await bookingCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatedBooking);
     });
 
     // PUT user //
